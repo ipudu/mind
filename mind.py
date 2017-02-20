@@ -1,7 +1,8 @@
 # number of particles
 # number density
 # time step
-# cutoff
+# cutoff radius
+# Number of steps
 
 import time
 import numpy as np
@@ -36,9 +37,6 @@ def total_energy(N, L, rc2, rx, ry, rz, fx, fy, fz):
                 fz[j] -= dz * f / r2
     return e
 
-def run():
-    pass
-
 def compute():
     pass
 
@@ -46,6 +44,9 @@ def update():
     pass
 
 def md():
+    pass
+
+def thermo():
     pass
 
 def output_xyz(N, rx, ry, rz):
@@ -56,8 +57,57 @@ def output_xyz(N, rx, ry, rz):
             f.write('{:d} {:.8f} {:.8f} {:.8f}'.format(1, rx[i], ry[i], rz[i]))
             f.write('\n')
 
+def run():
+    for s in range(nSteps):
+        for i in range(N):
+            rx[i] += vx[i] * dt + 0.5 * dt2 * fx[i]
+            ry[i] += vy[i] * dt + 0.5 * dt2 * fy[i]
+            rz[i] += vz[i] * dt + 0.5 * dt2 * fz[i]
+
+            vx[i] += 0.5 * dt * fx[i]
+            vy[i] += 0.5 * dt * fy[i]
+            vz[i] += 0.5 * dt * fz[i]
+
+            #Periodic boundary conditions
+            if rx[i] < 0.0:
+                rx[i] += L
+            if rx[i] > L:
+                rx[i] -= L
+            if ry[i] < 0.0:
+                ry[i] += L
+            if ry[i] > L:
+                ry[i] -= L
+            if rz[i] < 0.0:
+                rz[i] += L
+            if rz[i] > L:
+                rz[i] -= L
+
+        PE = total_energy(N, L, rc2, rx, ry, rz, fx, fy, fz)
+
+        KE = 0.0
+        for i in range(N):
+            vx[i] += 0.5 * dt * fx[i]
+            vy[i] += 0.5 * dt * fy[i]
+            vz[i] += 0.5 * dt * fz[i]
+
+            KE += vx[i] * vx[i] + vy[i] * vy[i] + vz[i] * vz[i]
+        KE *= 0.5
+        TE = PE + KE
+        print('steps: {:d}'.format())
+        print('\n')
+        output_xyz(N, rx, ry, rz)
+
 if (__name__ == '__main__'):
+'''
     rx=[1,2,3]
     ry=[1,2,3]
     rz=[1,2,3]
     output_xyz(3,rx,ry,rz)
+'''
+    #TODO: initializa
+    #output initial positions
+    output_xyz(N, rx, ry, rz)
+
+    TE0 = total_energy(N, L, rc2, rx, ry, rz, fx, fy, fz)
+
+    #TODO: run section
