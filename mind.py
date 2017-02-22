@@ -3,6 +3,7 @@
 # time step
 # cutoff radius
 # Number of steps
+# reduced unit: epsilon = sigma = Kb = 1
 
 import time
 import numpy as np
@@ -23,7 +24,7 @@ def initialize(N, L, rx, ry, rz):
                 iiy = 0
                 iiz += 1
 @jit
-def total_energy(N, L, rc2, rx, ry, rz, fx, fy, fz):
+def potential_energy(N, L, rc2, rx, ry, rz, fx, fy, fz):
     fx.fill(0)
     fy.fill(0)
     fz.fill(0)
@@ -61,22 +62,12 @@ def total_energy(N, L, rc2, rx, ry, rz, fx, fy, fz):
                 fz[j] -= dz * f / r2
     return e
 
-def compute():
-    pass
-
-def update():
-    pass
-
-def md():
-    pass
-
-def thermo():
+def kinetic energy():
     pass
 
 def output_xyz(N, z, rx, ry, rz):
     with open('output.xyz', 'a+') as f:
-        f.write(str(N) + '\n')
-        f.write('TimeStep: \n')
+        f.write(str(N) + '\n\n')
         for i in range(N):
             f.write('{:d} {:.8f} {:.8f} {:.8f}'.format(z, rx[i], ry[i], rz[i]))
             f.write('\n')
@@ -88,7 +79,8 @@ if (__name__ == '__main__'):
     dt = 0.001
     dt2 = dt * dt
     rc2 = 1.e20
-    nSteps = 100000
+    nSteps = 100
+    T = 1.0
 
     rx = np.zeros(N)
     ry = np.zeros(N)
@@ -101,12 +93,11 @@ if (__name__ == '__main__'):
     fz = np.zeros(N)
 
     initialize(N, L, rx, ry, rz)
-
-    PE = total_energy(N, L, rc2, rx, ry, rz, fx, fy, fz)
     output_xyz(N, z, rx, ry, rz)
 
-    print('#steps PE KE TE drift T P\n')
-    #run section
+    print('Setting up run ...')
+    print('-' * 70)
+
     for s in range(nSteps):
         for i in range(N):
             rx[i] += vx[i] * dt + 0.5 * dt2 * fx[i]
@@ -131,7 +122,7 @@ if (__name__ == '__main__'):
             if rz[i] > L:
                 rz[i] -= L
 
-        PE = total_energy(N, L, rc2, rx, ry, rz, fx, fy, fz)
+        PE = potential_energy(N, L, rc2, rx, ry, rz, fx, fy, fz)
 
         KE = 0.0
         for i in range(N):
@@ -142,6 +133,9 @@ if (__name__ == '__main__'):
             KE += vx[i] * vx[i] + vy[i] * vy[i] + vz[i] * vz[i]
         KE *= 0.5
         TE = PE + KE
-        print('{:d} {:5f} {:5f} {:5f}'.format(s, PE, KE, TE))
-        #print('\n')
+        print('Step: {:9d} PE = {:12.4f} KE = {:12.4f} TE  = {:12.4f}'.format(s+1, PE, KE, TE))
+
         output_xyz(N, z, rx, ry, rz)
+
+    print('-' * 70)
+    print('End of simulation! :)')
