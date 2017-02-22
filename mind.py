@@ -8,7 +8,19 @@ import time
 import numpy as np
 
 def initialize():
-    pass
+    n3 = int(n ** (1 / 3.))
+    iix = iiy = iiz = 0
+    for i in range(N):
+        rx[i] = (iix + 0.5) * L / n3
+        ry[i] = (iiy + 0.5) * L / n3
+        rz[i] = (iiz + 0.5) * L / n3
+        iix += 1
+        if iix == n3:
+            iix = 0
+            iiy += 1
+        if iiy == n3:
+            iiy = 0
+            iiz += 1
 
 def total_energy(N, L, rc2, rx, ry, rz, fx, fy, fz):
     hL = L / 2.0
@@ -19,9 +31,16 @@ def total_energy(N, L, rc2, rx, ry, rz, fx, fy, fz):
             dy = ry[i] - ry[j]
             dz = rz[i] - rz[i]
 
-            dx -= L if dx > hL else -L
-            dy -= L if dy > hL else -L
-            dz -= L if dz > hL else -L
+            if dx > hL:
+                dx -= L
+            if dx < -hL:
+                dx += L
+            if dy > hL:
+                dy -= L
+            if dz > hL:
+                dz -= L
+            if dz < -hL:
+                dz += L
 
             r2 = dx * dx + dy * dy + dz * dz
 
@@ -98,12 +117,12 @@ def run():
         output_xyz(N, rx, ry, rz)
 
 if (__name__ == '__main__'):
-'''
+    '''
     rx=[1,2,3]
     ry=[1,2,3]
     rz=[1,2,3]
     output_xyz(3,rx,ry,rz)
-'''
+    '''
     #TODO: initializa
     #output initial positions
     output_xyz(N, rx, ry, rz)
@@ -111,3 +130,4 @@ if (__name__ == '__main__'):
     TE0 = total_energy(N, L, rc2, rx, ry, rz, fx, fy, fz)
 
     #TODO: run section
+    '''
