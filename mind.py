@@ -22,7 +22,7 @@ def initialize(N, L, rx, ry, rz):
                 iiy = 0
                 iiz += 1
 
-def total_energy(N, L, rc2, rx, ry, rz):
+def total_energy(N, L, rc2, rx, ry, rz, fx, fy, fz):
     fx.fill(0)
     fy.fill(0)
     fz.fill(0)
@@ -80,7 +80,32 @@ def output_xyz(N, z, rx, ry, rz):
             f.write('{:d} {:.8f} {:.8f} {:.8f}'.format(z, rx[i], ry[i], rz[i]))
             f.write('\n')
 
-def run():
+if (__name__ == '__main__'):
+    z = 18
+    L = 7.55952
+    N = 216
+    dt = 0.001
+    dt2 = dt * dt
+    rc2 = 1.e20
+    nSteps = 10000
+
+    rx = np.zeros(N)
+    ry = np.zeros(N)
+    rz = np.zeros(N)
+    vx = np.zeros(N)
+    vy = np.zeros(N)
+    vz = np.zeros(N)
+    fx = np.zeros(N)
+    fy = np.zeros(N)
+    fz = np.zeros(N)
+
+    initialize(N, L, rx, ry, rz)
+
+    PE = total_energy(N, L, rc2, rx, ry, rz, fx, fy, fz)
+    output_xyz(N, z, rx, ry, rz)
+
+    print('#steps PE KE TE drift T P\n')
+    #run section
     for s in range(nSteps):
         for i in range(N):
             rx[i] += vx[i] * dt + 0.5 * dt2 * fx[i]
@@ -116,42 +141,6 @@ def run():
             KE += vx[i] * vx[i] + vy[i] * vy[i] + vz[i] * vz[i]
         KE *= 0.5
         TE = PE + KE
-        print('steps: {:d}'.format())
-        print('\n')
-        output_xyz(N, rx, ry, rz)
-
-if (__name__ == '__main__'):
-    '''
-    rx=[1,2,3]
-    ry=[1,2,3]
-    rz=[1,2,3]
-    output_xyz(3,rx,ry,rz)
-
-    #TODO: initializa
-    #output initial positions
-    output_xyz(N, rx, ry, rz)
-
-    TE0 = total_energy(N, L, rc2, rx, ry, rz, fx, fy, fz)
-
-    #TODO: run section
-    '''
-    z = 16
-    L = 10
-    N = 216
-    dt = 0.001
-    dt2 = dt * dt
-    rc2 = 1.e20
-    rx = np.zeros(N)
-    ry = np.zeros(N)
-    rz = np.zeros(N)
-    vx = np.zeros(N)
-    vy = np.zeros(N)
-    vz = np.zeros(N)
-    fx = np.zeros(N)
-    fy = np.zeros(N)
-    fz = np.zeros(N)
-
-    initialize(N, L, rx, ry, rz)
-
-    PE = total_energy(N, L, rc2, rx, ry, rz)
-    output_xyz(N, z, rx, ry, rz)
+        print('{:d} {:5f} {:5f} {:5f}'.format(s, PE, KE, TE))
+        #print('\n')
+        output_xyz(N, z, rx, ry, rz)
