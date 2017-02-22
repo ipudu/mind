@@ -7,8 +7,8 @@
 import time
 import numpy as np
 
-def initialize():
-    n3 = int(n ** (1 / 3.))
+def initialize(N, L, rx, ry, rz):
+    n3 = int(N ** (1 / 3.)) + 1
     iix = iiy = iiz = 0
     for i in range(N):
         rx[i] = (iix + 0.5) * L / n3
@@ -18,18 +18,22 @@ def initialize():
         if iix == n3:
             iix = 0
             iiy += 1
-        if iiy == n3:
-            iiy = 0
-            iiz += 1
+            if iiy == n3:
+                iiy = 0
+                iiz += 1
 
-def total_energy(N, L, rc2, rx, ry, rz, fx, fy, fz):
+def total_energy(N, L, rc2, rx, ry, rz):
+    fx.fill(0)
+    fy.fill(0)
+    fz.fill(0)
+
     hL = L / 2.0
     e = 0.0
     for i in range(N-1):
-        for j in range(N):
+        for j in range(i+1, N):
             dx = rx[i] - rx[j]
             dy = ry[i] - ry[j]
-            dz = rz[i] - rz[i]
+            dz = rz[i] - rz[j]
 
             if dx > hL:
                 dx -= L
@@ -68,12 +72,12 @@ def md():
 def thermo():
     pass
 
-def output_xyz(N, rx, ry, rz):
+def output_xyz(N, z, rx, ry, rz):
     with open('output.xyz', 'a+') as f:
         f.write(str(N) + '\n')
         f.write('TimeStep: \n')
         for i in range(N):
-            f.write('{:d} {:.8f} {:.8f} {:.8f}'.format(1, rx[i], ry[i], rz[i]))
+            f.write('{:d} {:.8f} {:.8f} {:.8f}'.format(z, rx[i], ry[i], rz[i]))
             f.write('\n')
 
 def run():
@@ -122,7 +126,7 @@ if (__name__ == '__main__'):
     ry=[1,2,3]
     rz=[1,2,3]
     output_xyz(3,rx,ry,rz)
-    '''
+
     #TODO: initializa
     #output initial positions
     output_xyz(N, rx, ry, rz)
@@ -131,3 +135,23 @@ if (__name__ == '__main__'):
 
     #TODO: run section
     '''
+    z = 16
+    L = 10
+    N = 216
+    dt = 0.001
+    dt2 = dt * dt
+    rc2 = 1.e20
+    rx = np.zeros(N)
+    ry = np.zeros(N)
+    rz = np.zeros(N)
+    vx = np.zeros(N)
+    vy = np.zeros(N)
+    vz = np.zeros(N)
+    fx = np.zeros(N)
+    fy = np.zeros(N)
+    fz = np.zeros(N)
+
+    initialize(N, L, rx, ry, rz)
+
+    PE = total_energy(N, L, rc2, rx, ry, rz)
+    output_xyz(N, z, rx, ry, rz)
