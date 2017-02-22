@@ -6,6 +6,7 @@
 
 import time
 import numpy as np
+from numba import jit
 
 def initialize(N, L, rx, ry, rz):
     n3 = int(N ** (1 / 3.)) + 1
@@ -21,7 +22,7 @@ def initialize(N, L, rx, ry, rz):
             if iiy == n3:
                 iiy = 0
                 iiz += 1
-
+@jit
 def total_energy(N, L, rc2, rx, ry, rz, fx, fy, fz):
     fx.fill(0)
     fy.fill(0)
@@ -87,7 +88,7 @@ if (__name__ == '__main__'):
     dt = 0.001
     dt2 = dt * dt
     rc2 = 1.e20
-    nSteps = 10000
+    nSteps = 100000
 
     rx = np.zeros(N)
     ry = np.zeros(N)
