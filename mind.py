@@ -23,6 +23,31 @@ def initialize(N, L, rx, ry, rz):
             if iiy == n3:
                 iiy = 0
                 iiz += 1
+
+def velocity_verlet(dt, rx, ry, rz, vx, vy, vz, i):
+    dt2 = dt * dt
+    rx[i] += vx[i] * dt + 0.5 * dt2 * fx[i]
+    ry[i] += vy[i] * dt + 0.5 * dt2 * fy[i]
+    rz[i] += vz[i] * dt + 0.5 * dt2 * fz[i]
+
+    vx[i] += 0.5 * dt * fx[i]
+    vy[i] += 0.5 * dt * fy[i]
+    vz[i] += 0.5 * dt * fz[i]
+
+def wrap_into_box(L, rx, ry, rz, i):
+    if rx[i] < 0.0:
+        rx[i] += L
+    if rx[i] > L:
+        rx[i] -= L
+    if ry[i] < 0.0:
+        ry[i] += L
+    if ry[i] > L:
+        ry[i] -= L
+    if rz[i] < 0.0:
+        rz[i] += L
+    if rz[i] > L:
+        rz[i] -= L
+
 @jit
 def potential_energy(N, L, rc2, rx, ry, rz, fx, fy, fz):
     fx.fill(0)
@@ -73,13 +98,45 @@ def kinetic_energy(N, dt, vx, vy, vz, fx, fy, fz):
     e *= 0.5
     return e
 
-def thermo(KE, T, N, vx, vy, vz):
+def berendsen_thermostat(N, dt, KE, vx, vy, vz):
+    lamb = np.sqrt(1 + dt / tau * (T / (2.0 * KE / 3.0 / N) - 1.0))
+    print lamb
+    for i in range(N):
+        vx[i] *= lamb
+        vy[i] *= lamb
+        vz[i] *= lamb
+
+def thermostat(KE, T, N, vx, vy, vz):
     t = KE / N * 2. / 3.
     fac = np.sqrt( T / t)
     for i in range(N):
         vx[i] *= fac
         vy[i] *= fac
         vz[i] *= fac
+
+def output_welcome(N, L, dt, nSteps, T):
+    mind = '''
+          ,--.   ,--. ,--.             ,--.
+          |   `.'   | `--' ,--,--,   ,-|  |
+          |  |'.'|  | ,--. |      \ ' .-. |
+          |  |   |  | |  | |  ||  | \ `-' |
+          `--'   `--' `--' `--''--'  `---'
+          '''
+    print(mind)
+    print('** A Minimal Lennard-Jones Fluid Molecular Dynamics Python Program **')
+    print('\nSystem information:\n')
+    print('                 Simulation type:\tNVT')
+    print('  Number of particles in the box:\t{:d}'.format(N))
+    print('                      Box length:\t{:f}'.format(L))
+    print('                       Time step:\t{:f}'.format(dt))
+    print('           Total number of steps:\t{:d}'.format(nSteps))
+    print('              Target Temperature:\t{:f}'.format(T))
+    print('\nOutput format:\n')
+    print ( '      Step      Potential       Kinetic        Total' )
+    print ( '                Energy PE       Energy KE      Energy TE\n' )
+
+def output_thermo(s, PE, KE, TE):
+    print('Step: {:9d} PE = {:12.4f} KE = {:12.4f} TE  = {:12.4f}'.format(s+1, PE, KE, TE))
 
 def output_xyz(N, rx, ry, rz):
     with open('output.xyz', 'a+') as f:
@@ -88,22 +145,32 @@ def output_xyz(N, rx, ry, rz):
             f.write('{:s} {:.8f} {:.8f} {:.8f}'.format('Pu', rx[i], ry[i], rz[i]))
             f.write('\n')
 
-def welcome():
-    pass
+def output_end(t_start, t_end):
+    print('-' * 70)
+    print ('Total looping time = {:.2f} seconds.'.format(t_end - t_start))
 
-def timestamp():
-    t = time.time()
-    print(time.ctime(t))
+def mdrun(N, L, rc2, dt, nSteps, T, rx, ry, rz, vx, vy, vz, fx, fy, fz):
+    print('-' * 70)
+    for s in range(nSteps):
+        for i in range(N):
+            velocity_verlet(dt, rx, ry, rz, vx, vy, vz,i)
+            wrap_into_box(L, rx, ry, rz, i)
+
+        PE = potential_energy(N, L, rc2, rx, ry, rz, fx, fy, fz)
+        KE = kinetic_energy(N, dt, vx, vy, vz, fx, fy, fz)
+        TE = PE + KE
+
+        output_thermo(s, PE, KE, TE)
+        output_xyz(N, rx, ry, rz)
 
 if (__name__ == '__main__'):
-    z = 18
     L = 7.55952
     N = 216
     dt = 0.001
-    dt2 = dt * dt
     rc2 = 1.e20
-    nSteps = 10000
+    nSteps = 100
     T = 1.0
+    tau = 1.0
     Tdamp = 1
 
     rx = np.zeros(N)
@@ -116,47 +183,12 @@ if (__name__ == '__main__'):
     fy = np.zeros(N)
     fz = np.zeros(N)
 
+
+    output_welcome(N, L, dt, nSteps, T)
     initialize(N, L, rx, ry, rz)
     output_xyz(N, rx, ry, rz)
 
-    print('Setting up run ...')
-    print('-' * 70)
-
-    for s in range(nSteps):
-        for i in range(N):
-            rx[i] += vx[i] * dt + 0.5 * dt2 * fx[i]
-            ry[i] += vy[i] * dt + 0.5 * dt2 * fy[i]
-            rz[i] += vz[i] * dt + 0.5 * dt2 * fz[i]
-
-            vx[i] += 0.5 * dt * fx[i]
-            vy[i] += 0.5 * dt * fy[i]
-            vz[i] += 0.5 * dt * fz[i]
-
-            #Periodic boundary conditions
-            if rx[i] < 0.0:
-                rx[i] += L
-            if rx[i] > L:
-                rx[i] -= L
-            if ry[i] < 0.0:
-                ry[i] += L
-            if ry[i] > L:
-                ry[i] -= L
-            if rz[i] < 0.0:
-                rz[i] += L
-            if rz[i] > L:
-                rz[i] -= L
-
-        PE = potential_energy(N, L, rc2, rx, ry, rz, fx, fy, fz)
-        KE = kinetic_energy(N, dt, vx, vy, vz, fx, fy, fz)
-        TE = PE + KE
-
-        if s % Tdamp == 0:
-            thermo(KE, T, N, vx, vy, vz)
-
-        print('Step: {:9d} PE = {:12.4f} KE = {:12.4f} TE  = {:12.4f}'.format(s+1, PE, KE, TE))
-
-        output_xyz(N, rx, ry, rz)
-
-    print('-' * 70)
-    print('End of simulation! :)')
-    timestamp()
+    t_start = time.clock()
+    mdrun(N, L, rc2, dt, nSteps, T, rx, ry, rz, vx, vy, vz, fx, fy, fz)
+    t_end = time.clock()
+    output_end(t_start, t_end)
