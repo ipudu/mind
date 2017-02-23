@@ -73,12 +73,27 @@ def kinetic_energy(N, dt, vx, vy, vz, fx, fy, fz):
     e *= 0.5
     return e
 
+def thermo(KE, T, N, vx, vy, vz):
+    t = KE / N * 2. / 3.
+    fac = np.sqrt( T / t)
+    for i in range(N):
+        vx[i] *= fac
+        vy[i] *= fac
+        vz[i] *= fac
+
 def output_xyz(N, z, rx, ry, rz):
     with open('output.xyz', 'a+') as f:
         f.write(str(N) + '\n\n')
         for i in range(N):
             f.write('{:s} {:.8f} {:.8f} {:.8f}'.format('Pu', rx[i], ry[i], rz[i]))
             f.write('\n')
+
+def welcome():
+    pass
+
+def timestamp():
+    t = time.time()
+    print(time.ctime(t))
 
 if (__name__ == '__main__'):
     z = 18
@@ -134,9 +149,12 @@ if (__name__ == '__main__'):
         KE = kinetic_energy(N, dt, vx, vy, vz, fx, fy, fz)
         TE = PE + KE
 
+        thermo(KE, T, N, vx, vy, vz)
+
         print('Step: {:9d} PE = {:12.4f} KE = {:12.4f} TE  = {:12.4f}'.format(s+1, PE, KE, TE))
 
         output_xyz(N, z, rx, ry, rz)
 
     print('-' * 70)
     print('End of simulation! :)')
+    timestamp()
