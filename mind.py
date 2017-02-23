@@ -81,7 +81,7 @@ def thermo(KE, T, N, vx, vy, vz):
         vy[i] *= fac
         vz[i] *= fac
 
-def output_xyz(N, z, rx, ry, rz):
+def output_xyz(N, rx, ry, rz):
     with open('output.xyz', 'a+') as f:
         f.write(str(N) + '\n\n')
         for i in range(N):
@@ -102,8 +102,9 @@ if (__name__ == '__main__'):
     dt = 0.001
     dt2 = dt * dt
     rc2 = 1.e20
-    nSteps = 100
+    nSteps = 10000
     T = 1.0
+    Tdamp = 1
 
     rx = np.zeros(N)
     ry = np.zeros(N)
@@ -116,7 +117,7 @@ if (__name__ == '__main__'):
     fz = np.zeros(N)
 
     initialize(N, L, rx, ry, rz)
-    output_xyz(N, z, rx, ry, rz)
+    output_xyz(N, rx, ry, rz)
 
     print('Setting up run ...')
     print('-' * 70)
@@ -149,11 +150,12 @@ if (__name__ == '__main__'):
         KE = kinetic_energy(N, dt, vx, vy, vz, fx, fy, fz)
         TE = PE + KE
 
-        thermo(KE, T, N, vx, vy, vz)
+        if s % Tdamp == 0:
+            thermo(KE, T, N, vx, vy, vz)
 
         print('Step: {:9d} PE = {:12.4f} KE = {:12.4f} TE  = {:12.4f}'.format(s+1, PE, KE, TE))
 
-        output_xyz(N, z, rx, ry, rz)
+        output_xyz(N, rx, ry, rz)
 
     print('-' * 70)
     print('End of simulation! :)')
