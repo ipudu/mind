@@ -62,14 +62,22 @@ def potential_energy(N, L, rc2, rx, ry, rz, fx, fy, fz):
                 fz[j] -= dz * f / r2
     return e
 
-def kinetic energy():
-    pass
+@jit
+def kinetic_energy(N, dt, vx, vy, vz, fx, fy, fz):
+    e = 0.0
+    for i in range(N):
+        vx[i] += 0.5 * dt * fx[i]
+        vy[i] += 0.5 * dt * fy[i]
+        vz[i] += 0.5 * dt * fz[i]
+        e += vx[i] * vx[i] + vy[i] * vy[i] + vz[i] * vz[i]
+    e *= 0.5
+    return e
 
 def output_xyz(N, z, rx, ry, rz):
     with open('output.xyz', 'a+') as f:
         f.write(str(N) + '\n\n')
         for i in range(N):
-            f.write('{:d} {:.8f} {:.8f} {:.8f}'.format(z, rx[i], ry[i], rz[i]))
+            f.write('{:s} {:.8f} {:.8f} {:.8f}'.format('Pu', rx[i], ry[i], rz[i]))
             f.write('\n')
 
 if (__name__ == '__main__'):
@@ -123,16 +131,9 @@ if (__name__ == '__main__'):
                 rz[i] -= L
 
         PE = potential_energy(N, L, rc2, rx, ry, rz, fx, fy, fz)
-
-        KE = 0.0
-        for i in range(N):
-            vx[i] += 0.5 * dt * fx[i]
-            vy[i] += 0.5 * dt * fy[i]
-            vz[i] += 0.5 * dt * fz[i]
-
-            KE += vx[i] * vx[i] + vy[i] * vy[i] + vz[i] * vz[i]
-        KE *= 0.5
+        KE = kinetic_energy(N, dt, vx, vy, vz, fx, fy, fz)
         TE = PE + KE
+
         print('Step: {:9d} PE = {:12.4f} KE = {:12.4f} TE  = {:12.4f}'.format(s+1, PE, KE, TE))
 
         output_xyz(N, z, rx, ry, rz)
