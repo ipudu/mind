@@ -11,7 +11,7 @@
 #                                                                              #
 #  Author: Pu Du                                                               #
 # Website: pudu.io                                                             #
-#   Email: pudu.gg@gmail.com                                                   #
+#   Email: pudugg@gmail.com                                                   #
 ################################################################################
 
 import time
