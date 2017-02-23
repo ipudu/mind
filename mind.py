@@ -1,9 +1,18 @@
-# number of particles
-# number density
-# time step
-# cutoff radius
-# Number of steps
-# reduced unit: epsilon = sigma = Kb = 1
+################################################################################
+#              ,--.   ,--. ,--.             ,--.                               #
+#              |   `.'   | `--' ,--,--,   ,-|  |                               #
+#              |  |'.'|  | ,--. |      \ ' .-. |                               #
+#              |  |   |  | |  | |  ||  | \ `-' |                               #
+#              `--'   `--' `--' `--''--'  `---'                                #
+#                                                                              #
+# ** A Minimal Lennard-Jones Fluid Molecular Dynamics Python Program **        #
+#                                                                              #
+#                                                                              #
+#                                                                              #
+#  Author: Pu Du                                                               #
+# Website: pudu.io                                                             #
+#   Email: pudu.gg@gmail.com                                                   #
+################################################################################
 
 import time
 import numpy as np
@@ -100,7 +109,6 @@ def kinetic_energy(N, dt, vx, vy, vz, fx, fy, fz):
 
 def berendsen_thermostat(N, dt, KE, vx, vy, vz):
     lamb = np.sqrt(1 + dt / tau * (T / (2.0 * KE / 3.0 / N) - 1.0))
-    print lamb
     for i in range(N):
         vx[i] *= lamb
         vy[i] *= lamb
@@ -116,11 +124,11 @@ def thermostat(KE, T, N, vx, vy, vz):
 
 def output_welcome(N, L, dt, nSteps, T):
     mind = '''
-          ,--.   ,--. ,--.             ,--.
-          |   `.'   | `--' ,--,--,   ,-|  |
-          |  |'.'|  | ,--. |      \ ' .-. |
-          |  |   |  | |  | |  ||  | \ `-' |
-          `--'   `--' `--' `--''--'  `---'
+              ,--.   ,--. ,--.             ,--.
+              |   `.'   | `--' ,--,--,   ,-|  |
+              |  |'.'|  | ,--. |      \ ' .-. |
+              |  |   |  | |  | |  ||  | \ `-' |
+              `--'   `--' `--' `--''--'  `---'
           '''
     print(mind)
     print('** A Minimal Lennard-Jones Fluid Molecular Dynamics Python Program **')
@@ -133,8 +141,8 @@ def output_welcome(N, L, dt, nSteps, T):
     print('           Total number of steps:\t{:d}'.format(nSteps))
     print('              Target temperature:\t{:f}'.format(T))
     print('\nOutput format:\n')
-    print ( '      Step      Potential       Kinetic        Total' )
-    print ( '                Energy PE       Energy KE      Energy TE\n' )
+    print ( 'Step             Potential        Kinetic          Total' )
+    print ( '                 Energy PE        Energy KE        Energy TE\n' )
 
 def output_thermo(s, PE, KE, TE):
     print('Step: {:9d} PE = {:12.4f} KE = {:12.4f} TE  = {:12.4f}'.format(s+1, PE, KE, TE))
@@ -149,6 +157,15 @@ def output_xyz(N, rx, ry, rz):
 def output_end(t_start, t_end):
     print('-' * 70)
     print ('Total looping time = {:.2f} seconds.'.format(t_end - t_start))
+    art = '''
+                           .
+                          ":"
+                        ___:____     |"\/"|
+                      ,'        `.    \  /
+                      |  O        \___/  |
+                    ~^~^~^~^~^~^~^~^~^~^~^~^~
+           '''
+    print(art)
 
 def mdrun(N, L, rc2, dt, nSteps, T, rx, ry, rz, vx, vy, vz, fx, fy, fz):
     print('-' * 70)
@@ -161,6 +178,8 @@ def mdrun(N, L, rc2, dt, nSteps, T, rx, ry, rz, vx, vy, vz, fx, fy, fz):
         KE = kinetic_energy(N, dt, vx, vy, vz, fx, fy, fz)
         TE = PE + KE
 
+        berendsen_thermostat(N, dt, KE, vx, vy, vz)
+
         output_thermo(s, PE, KE, TE)
         output_xyz(N, rx, ry, rz)
 
@@ -169,9 +188,9 @@ if (__name__ == '__main__'):
     N = 216
     dt = 0.001
     rc2 = 1.e20
-    nSteps = 100
+    nSteps = 10000
     T = 1.0
-    tau = 1.0
+    tau = 0.1
     Tdamp = 1
 
     rx = np.zeros(N)
