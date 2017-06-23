@@ -77,6 +77,8 @@ def potential_energy(N, L, rc2, rx, ry, rz, fx, fy, fz):
                 dx += L
             if dy > hL:
                 dy -= L
+            if dy < -hL:
+                dy += L
             if dz > hL:
                 dz -= L
             if dz < -hL:
