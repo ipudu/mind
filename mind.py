@@ -11,7 +11,7 @@
 #                                                                              #
 #  Author: Pu Du                                                               #
 # Website: pudu.io                                                             #
-#   Email: pudugg@gmail.com                                                   #
+#   Email: pudugg@gmail.com                                                    #
 ################################################################################
 
 import time
@@ -190,7 +190,7 @@ if (__name__ == '__main__'):
     N = 216
     dt = 0.001
     rc2 = 1.e20
-    nSteps = 10000
+    nSteps = 100000
     T = 1.0
     tau = 0.1
     Tdamp = 1
