@@ -3,13 +3,15 @@ A Minimal Lennard-Jones Fluid Molecular Dynamics Python Program
 
 ## Getting Started
 
-simplely,
+Simplely,
 
 ```bash
 $ python mind.py
 ```
+
 ## Requirements
-[Anaconda](https://www.anaconda.com/download/) is required to run mind.
+
+[Anaconda](https://www.anaconda.com/download/) is required to run this code.
 
 ## License
 
