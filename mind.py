@@ -19,6 +19,7 @@ import numpy as np
 from numba import jit
 
 def initialize(N, L, rx, ry, rz):
+    """put N particles in a box"""
     n3 = int(N ** (1 / 3.)) + 1
     iix = iiy = iiz = 0
     for i in range(N):
@@ -34,6 +35,7 @@ def initialize(N, L, rx, ry, rz):
                 iiz += 1
 
 def velocity_verlet(dt, rx, ry, rz, vx, vy, vz, i):
+    """verloctiy verlet algorithm"""
     dt2 = dt * dt
     rx[i] += vx[i] * dt + 0.5 * dt2 * fx[i]
     ry[i] += vy[i] * dt + 0.5 * dt2 * fy[i]
@@ -44,6 +46,7 @@ def velocity_verlet(dt, rx, ry, rz, vx, vy, vz, i):
     vz[i] += 0.5 * dt * fz[i]
 
 def wrap_into_box(L, rx, ry, rz, i):
+    """wrap the coordinates"""
     if rx[i] < 0.0:
         rx[i] += L
     if rx[i] > L:
@@ -59,6 +62,7 @@ def wrap_into_box(L, rx, ry, rz, i):
 
 @jit
 def potential_energy(N, L, rc2, rx, ry, rz, fx, fy, fz):
+    """calculate the potential energy"""
     fx.fill(0)
     fy.fill(0)
     fz.fill(0)
@@ -100,6 +104,7 @@ def potential_energy(N, L, rc2, rx, ry, rz, fx, fy, fz):
 
 @jit
 def kinetic_energy(N, dt, vx, vy, vz, fx, fy, fz):
+    """calculate the kinetic energy"""
     e = 0.0
     for i in range(N):
         vx[i] += 0.5 * dt * fx[i]
@@ -110,6 +115,7 @@ def kinetic_energy(N, dt, vx, vy, vz, fx, fy, fz):
     return e
 
 def berendsen_thermostat(N, dt, KE, vx, vy, vz):
+    """berendsen thermostat algorithm"""
     lamb = np.sqrt(1 + dt / tau * (T / (2.0 * KE / 3.0 / N) - 1.0))
     for i in range(N):
         vx[i] *= lamb
@@ -117,6 +123,7 @@ def berendsen_thermostat(N, dt, KE, vx, vy, vz):
         vz[i] *= lamb
 
 def thermostat(KE, T, N, vx, vy, vz):
+    """velocity scaling algorithm"""
     t = KE / N * 2. / 3.
     fac = np.sqrt( T / t)
     for i in range(N):
@@ -125,6 +132,7 @@ def thermostat(KE, T, N, vx, vy, vz):
         vz[i] *= fac
 
 def output_welcome(N, L, dt, nSteps, T):
+    """print welcome information""""
     mind = '''
               ,--.   ,--. ,--.             ,--.
               |   `.'   | `--' ,--,--,   ,-|  |
@@ -147,9 +155,11 @@ def output_welcome(N, L, dt, nSteps, T):
     print ( '                 Energy PE        Energy KE        Energy TE\n' )
 
 def output_thermo(s, PE, KE, TE):
+    """print thermo information"""
     print('Step: {:9d} PE = {:12.4f} KE = {:12.4f} TE  = {:12.4f}'.format(s+1, PE, KE, TE))
 
 def output_xyz(N, rx, ry, rz):
+    """xyz output"""
     with open('output.xyz', 'a+') as f:
         f.write(str(N) + '\n\n')
         for i in range(N):
@@ -157,6 +167,7 @@ def output_xyz(N, rx, ry, rz):
             f.write('\n')
 
 def output_end(t_start, t_end):
+    """print time information"""
     print('-' * 70)
     print ('Total looping time = {:.2f} seconds.'.format(t_end - t_start))
     art = '''
@@ -170,6 +181,7 @@ def output_end(t_start, t_end):
     print(art)
 
 def mdrun(N, L, rc2, dt, nSteps, T, rx, ry, rz, vx, vy, vz, fx, fy, fz):
+    """main MD function"""
     print('-' * 70)
     for s in range(nSteps):
         for i in range(N):
@@ -186,14 +198,23 @@ def mdrun(N, L, rc2, dt, nSteps, T, rx, ry, rz, vx, vy, vz, fx, fy, fz):
         output_xyz(N, rx, ry, rz)
 
 if (__name__ == '__main__'):
+    ############################################
+    # parameters can be changed (reduced unit)
+    # L : box length
+    # N : number of particles
+    # dt : time step
+    # rc2 : squared cutoff distance
+    # nSteps : number of steps of simulation
+    # T : temperature
     L = 7.55952
     N = 216
     dt = 0.001
     rc2 = 1.e20
-    nSteps = 100000
+    nSteps = 10000
     T = 1.0
     tau = 0.1
     Tdamp = 1
+    ############################################
 
     rx = np.zeros(N)
     ry = np.zeros(N)
