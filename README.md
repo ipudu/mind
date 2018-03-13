@@ -9,6 +9,10 @@ Simplely,
 $ python mind.py
 ```
 
+## Usage
+
+Please check the code for details.
+
 ## Requirements
 
 [Anaconda](https://www.anaconda.com/download/) is required to run this code.
