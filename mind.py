@@ -132,7 +132,7 @@ def thermostat(KE, T, N, vx, vy, vz):
         vz[i] *= fac
 
 def output_welcome(N, L, dt, nSteps, T):
-    """print welcome information""""
+    """print welcome information"""
     mind = '''
               ,--.   ,--. ,--.             ,--.
               |   `.'   | `--' ,--,--,   ,-|  |
